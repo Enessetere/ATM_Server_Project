@@ -1,49 +1,78 @@
 package DBTO;
 
 import java.sql.*;
+import java.util.Arrays;
 
 public class DataBaseConnector {
-    private static Connection connection;
-    private static Statement statement;
+    private Connection connection;
+    private Statement statement;
+    private static boolean isAvailable;
 
-    public static void startConnection() throws SQLException, ClassNotFoundException {
+    public DataBaseConnector() {
+        try {
+            startConnection();
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        } catch (ClassNotFoundException ex) {
+            System.out.println(Arrays.toString(ex.getStackTrace()));
+        }
+    }
+
+    private void startConnection() throws SQLException, ClassNotFoundException {
+        isAvailable = true;
         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
         connection = DriverManager
                 .getConnection("jdbc:sqlserver://localhost:3366;instance=SQLEXPRESS;databaseName=ATM_DATA_DB", "sa", "21DIablo!@");
         statement = connection.createStatement();
+        System.out.println("Connection opened.");
     }
 
-    public static boolean checkCard(String cardNumber) throws SQLException {
+    public boolean checkCard(String cardNumber) throws SQLException {
         boolean result;
+        isAvailable = false;
         ResultSet resultSet = statement.executeQuery("select PIN from Card where Number=" + cardNumber);
-        result = resultSet.last();
+        result = resultSet.next();
         resultSet.close();
-        return  result;
+        isAvailable = true;
+        return result;
     }
 
-    public static String getPin(String cardNumber) throws SQLException {
+    public String getPin(String cardNumber) throws SQLException {
         String result;
-        ResultSet resultSet = statement.executeQuery("select PIN from Card where Number=" + cardNumber);
-        result = resultSet.getString(1);
+        isAvailable = false;
+        ResultSet resultSet = statement.executeQuery("select * from Card where Number=" + cardNumber);
+        resultSet.next();
+        result = resultSet.getString("PIN");
         resultSet.close();
-        return  result;
+        isAvailable = true;
+        return result;
     }
 
-    public static String getBalance(String cardNumber) throws SQLException {
+    public String getBalance(String cardNumber) throws SQLException {
         String result;
+        isAvailable = false;
         ResultSet resultSet = statement.executeQuery("SELECT P.Balance FROM Account AS P JOIN Card AS C ON P.ID=C.AccountID WHERE C.Number=" + cardNumber);
+        resultSet.next();
         result = resultSet.getString(1);
         resultSet.close();
-        return  result;
+        isAvailable = true;
+        return result;
     }
 
-    public static void setBalance(String cardNumber, double balance) throws SQLException {
-        statement.executeQuery("UPDATE P SET P.Balance=" + balance + " FROM Account AS P JOIN Card AS C ON P.ID=C.AccountID WHERE C.Number=" + cardNumber);
+    public void setBalance(String cardNumber, double balance) throws SQLException {
+        isAvailable = false;
+        statement.executeUpdate("UPDATE P SET P.Balance=" + balance + " FROM Account AS P JOIN Card AS C ON P.ID=C.AccountID WHERE C.Number=" + cardNumber);
+        isAvailable = true;
     }
 
-    public static void closeConnection() throws SQLException {
+    public void closeConnection() throws SQLException {
         statement.close();
         connection.close();
+        System.out.println("Connection closed.");
+    }
+
+    public static boolean isAvailable() {
+        return isAvailable;
     }
 }
 
