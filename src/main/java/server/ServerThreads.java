@@ -11,7 +11,6 @@ public class ServerThreads implements Runnable {
     private Socket socket;
     private String cardNumber;
     private String pin;
-    private double balance;
 
     ServerThreads(DataBaseConnector dBC, Socket socket) {
         ServerThreads.dBC = dBC;
@@ -43,6 +42,7 @@ public class ServerThreads implements Runnable {
                     ServerApplication.changeStatus();
                     return;
                 } else {
+                    double balance;
                     if (line.equalsIgnoreCase("BALANCE")) {
                         try {
                             balance = dBC.getBalance(cardNumber);
@@ -50,10 +50,20 @@ public class ServerThreads implements Runnable {
                         } catch (SQLException ex) {
                             System.out.println("SQL DB malfunction");
                         }
-                    } else if (line.equalsIgnoreCase("UPDATE")) {
+                    } else if (line.equalsIgnoreCase("WITHDRAW")) {
                         try {
+                            balance = dBC.getBalance(cardNumber);
                             line = bufferedReader.readLine();
                             balance -= Double.parseDouble(line);
+                            dBC.setBalance(cardNumber, balance);
+                        } catch (SQLException ex) {
+                            System.out.println("SQL DB malfunction");
+                        }
+                    } else if (line.equalsIgnoreCase("DEPOSIT")) {
+                        try {
+                            balance = dBC.getBalance(cardNumber);
+                            line = bufferedReader.readLine();
+                            balance += Double.parseDouble(line);
                             dBC.setBalance(cardNumber, balance);
                         } catch (SQLException ex) {
                             System.out.println("SQL DB malfunction");
@@ -71,7 +81,6 @@ public class ServerThreads implements Runnable {
                             if (dBC.checkCard(line)) {
                                 cardNumber = line;
                                 pin = dBC.getPin(cardNumber);
-                                balance = dBC.getBalance(cardNumber);
                                 line = "true";
                             } else {
                                 line = "false";
