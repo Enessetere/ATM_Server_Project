@@ -48,7 +48,7 @@ public class DataBaseConnector {
         return result;
     }
 
-    public String getBalance(String cardNumber) throws SQLException {
+    public double getBalance(String cardNumber) throws SQLException {
         String result;
         isAvailable = false;
         ResultSet resultSet = statement.executeQuery("SELECT P.Balance FROM Account AS P JOIN Card AS C ON P.ID=C.AccountID WHERE C.Number=" + cardNumber);
@@ -56,7 +56,7 @@ public class DataBaseConnector {
         result = resultSet.getString(1);
         resultSet.close();
         isAvailable = true;
-        return result;
+        return Double.parseDouble(result);
     }
 
     public void setBalance(String cardNumber, double balance) throws SQLException {

@@ -5,6 +5,7 @@ import DBTO.DataBaseConnector;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ServerApplication {
     private static final int port = 3367;
@@ -12,7 +13,7 @@ public class ServerApplication {
 
     public static void launchServer(DataBaseConnector dBC) {
         ServerSocket serverSocket;
-        Socket socket = null;
+        Socket socket;
         shutdown = false;
 
         try {
@@ -22,13 +23,18 @@ public class ServerApplication {
             return;
         }
 
+        try {
+            serverSocket.setSoTimeout(10);
+        } catch (SocketException ex) {
+            System.out.println("Accept interrupted");
+        }
+
         while (!shutdown) {
             try {
                 socket = serverSocket.accept();
-            } catch (IOException ex) {
-                System.out.println("Problem with acceptance of client");
+                new Thread(new ServerThreads(dBC, socket)).start();
+            } catch (IOException ignored) {
             }
-            new Thread(new ServerThreads(dBC, socket)).start();
         }
     }
 
