@@ -22,7 +22,7 @@ public class DataBaseConnector {
         isAvailable = true;
         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
         connection = DriverManager
-                .getConnection("jdbc:sqlserver://localhost:3366;instance=SQLEXPRESS;databaseName=ATM_DATA_DB", "sa", "21DIablo!@");
+                .getConnection("jdbc:sqlserver://localhost:3366;instance=SQLEXPRESS;databaseName=ATM_DATA_DB", "sa", "pass");
         statement = connection.createStatement();
         System.out.println("Connection opened.");
     }
